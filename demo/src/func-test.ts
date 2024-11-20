@@ -1,22 +1,28 @@
 import * as Cord from '@cord.network/sdk'
-// import { UUID, Crypto } from '@cord.network/utils'
 import { createDidName } from './utils/generateDidName'
 import { getDidDocFromName } from './utils/queryDidName'
 import { randomUUID } from 'crypto'
 import { addNetworkMember } from './utils/createAuthorities'
 import { createAccount } from './utils/createAccount'
 
-function getChallenge(): string {
-  return Cord.Utils.UUID.generate()
-}
+import BN from 'bn.js';
 
 async function main() {
   const networkAddress = process.env.NETWORK_ADDRESS
     ? process.env.NETWORK_ADDRESS
     : 'ws://127.0.0.1:9944'
-  //  const networkAddress = 'ws://127.0.0.1:9944'
+
   Cord.ConfigService.set({ submitTxResolveOn: Cord.Chain.IS_IN_BLOCK })
   await Cord.connect(networkAddress)
+
+  const api = Cord.ConfigService.get('api');
+
+  // Retrieve the runtime version & the type of the runtime.
+  const runtimeVersion = api.runtimeVersion;
+  
+  const runtimeType = runtimeVersion.specName.toString();
+
+  console.log("\n❄️ Connected to CORD runtime type:", runtimeType);
 
   // Step 1: Setup Membership
   // Setup transaction author account - CORD Account.
@@ -38,6 +44,10 @@ async function main() {
   console.log(`🏦  Member (${authorIdentity.type}): ${authorIdentity.address}`)
   await addNetworkMember(authorityAuthorIdentity, authorIdentity.address)
   console.log('✅ Network Member added!')
+
+  // Transfer funds for the identity.
+  let tx = await api.tx.balances.transferAllowDeath(authorIdentity.address, new BN('1000000000000000'));
+  await Cord.Chain.signAndSubmitTx(tx, authorityAuthorIdentity);
 
   // Step 2: Setup Identities
   console.log(`\n❄️  Demo Identities (KeyRing)`)
@@ -163,42 +173,45 @@ async function main() {
   )
   console.log(`✅  Chain Space Approved`)
 
-  // Step 3.5: Subspace
-  const subSpaceProperties = await Cord.ChainSpace.buildFromProperties(
-    issuerDid.uri
-  )
-  console.dir(subSpaceProperties, {
-    depth: null,
-    colors: true,
-  })
-  const subSpace = await Cord.ChainSpace.dispatchSubspaceCreateToChain(
-    subSpaceProperties,
-    issuerDid.uri,
-    authorIdentity,
-    200,
-    space.uri,
-    async ({ data }) => ({
-      signature: issuerKeys.authentication.sign(data),
-      keyType: issuerKeys.authentication.type,
+  /* Disable subspace for permissionless chain */
+  if (runtimeType != "weave") {
+    // Step 3.5: Subspace
+    const subSpaceProperties = await Cord.ChainSpace.buildFromProperties(
+      issuerDid.uri
+    )
+    console.dir(subSpaceProperties, {
+      depth: null,
+      colors: true,
     })
-  )
-  console.dir(subSpace, {
-    depth: null,
-    colors: true,
-  })
-  console.log(`\n❄️  SubSpace is created`)
+    const subSpace = await Cord.ChainSpace.dispatchSubspaceCreateToChain(
+      subSpaceProperties,
+      issuerDid.uri,
+      authorIdentity,
+      200,
+      space.uri,
+      async ({ data }) => ({
+        signature: issuerKeys.authentication.sign(data),
+        keyType: issuerKeys.authentication.type,
+      })
+    )
+    console.dir(subSpace, {
+      depth: null,
+      colors: true,
+    })
+    console.log(`\n❄️  SubSpace is created`)
 
-  const subSpaceTx = await Cord.ChainSpace.dispatchUpdateTxCapacityToChain(
-    subSpace.uri,
-    issuerDid.uri,
-    authorIdentity,
-    300,
-    async ({ data }) => ({
-      signature: issuerKeys.authentication.sign(data),
-      keyType: issuerKeys.authentication.type,
-    })
-  )
-  console.log(`\n❄️  SubSpace limit is updated`)
+    const subSpaceTx = await Cord.ChainSpace.dispatchUpdateTxCapacityToChain(
+      subSpace.uri,
+      issuerDid.uri,
+      authorIdentity,
+      300,
+      async ({ data }) => ({
+        signature: issuerKeys.authentication.sign(data),
+        keyType: issuerKeys.authentication.type,
+      })
+    )
+    console.log(`\n❄️  SubSpace limit is updated`)
+  }
 
   // Step 4: Add Delelegate Two as Registry Delegate
   console.log(`\n❄️  Space Delegate Authorization `)
