@@ -3283,7 +3283,6 @@ declare module '@polkadot/api-base/types/submittable' {
        * 
        * # Parameters
        * - `origin`: The origin of the transaction, signed by the creator.
-       * - `registry_id`: A unique code created to identify the registry.
        * - `digest`: The digest representing the registry data to be created.
        * - `schema_id`: (Optional) A unique code represnting the Schema.
        * - `blob`: (Optional) Metadata or data associated with the registry.
@@ -3306,7 +3305,7 @@ declare module '@polkadot/api-base/types/submittable' {
        * - `Create`: Emitted when a new registry is successfully created. It includes the
        * registry identifier, the creator's identifier, and the authorization ID.
        **/
-      create: AugmentedSubmittable<(registryId: Bytes | string | Uint8Array, digest: H256 | string | Uint8Array, schemaId: Option<Bytes> | null | Uint8Array | Bytes | string, blob: Option<Bytes> | null | Uint8Array | Bytes | string) => SubmittableExtrinsic<ApiType>, [Bytes, H256, Option<Bytes>, Option<Bytes>]>;
+      create: AugmentedSubmittable<(digest: H256 | string | Uint8Array, schemaId: Option<Bytes> | null | Uint8Array | Bytes | string, blob: Option<Bytes> | null | Uint8Array | Bytes | string) => SubmittableExtrinsic<ApiType>, [H256, Option<Bytes>, Option<Bytes>]>;
       /**
        * Reinstates a revoked registry, making it active again.
        * 

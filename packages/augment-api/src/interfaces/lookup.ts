@@ -2731,7 +2731,6 @@ export default {
         authorization: 'Bytes',
       },
       create: {
-        registryId: 'Bytes',
         digest: 'H256',
         schemaId: 'Option<Bytes>',
         blob: 'Option<Bytes>',
