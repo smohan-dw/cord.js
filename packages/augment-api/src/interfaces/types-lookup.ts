@@ -2981,7 +2981,6 @@ declare module '@polkadot/types/lookup' {
     } & Struct;
     readonly isCreate: boolean;
     readonly asCreate: {
-      readonly registryId: Bytes;
       readonly digest: H256;
       readonly schemaId: Option<Bytes>;
       readonly blob: Option<Bytes>;
