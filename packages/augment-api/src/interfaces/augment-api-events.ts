@@ -661,6 +661,38 @@ declare module '@polkadot/api-base/types/events' {
        **/
       NewMultisig: AugmentedEvent<ApiType, [approving: AccountId32, multisig: AccountId32, callHash: U8aFixed], { approving: AccountId32, multisig: AccountId32, callHash: U8aFixed }>;
     };
+    nameSpace: {
+      /**
+       * A namespace has been archived.
+       * \[namespace identifier,  authority\]
+       **/
+      Archive: AugmentedEvent<ApiType, [namespace: Bytes, authority: AccountId32], { namespace: Bytes, authority: AccountId32 }>;
+      /**
+       * A new namespace authorization has been added.
+       * \[namespace identifier, authorization,  delegate\]
+       **/
+      Authorization: AugmentedEvent<ApiType, [namespace: Bytes, authorization: Bytes, delegate: AccountId32], { namespace: Bytes, authorization: Bytes, delegate: AccountId32 }>;
+      /**
+       * A new namespace has been created.
+       * \[namespace identifier, creator, authorization\]
+       **/
+      Create: AugmentedEvent<ApiType, [namespace: Bytes, creator: AccountId32, authorization: Bytes], { namespace: Bytes, creator: AccountId32, authorization: Bytes }>;
+      /**
+       * A namespace authorization has been removed.
+       * \[namespace identifier, authorization, ]
+       **/
+      Deauthorization: AugmentedEvent<ApiType, [namespace: Bytes, authorization: Bytes], { namespace: Bytes, authorization: Bytes }>;
+      /**
+       * A namespace has been restored.
+       * \[namespace identifier,  authority\]
+       **/
+      Restore: AugmentedEvent<ApiType, [namespace: Bytes, authority: AccountId32], { namespace: Bytes, authority: AccountId32 }>;
+      /**
+       * A namespace has been restored.
+       * \[namespace identifier, \]
+       **/
+      Revoke: AugmentedEvent<ApiType, [namespace: Bytes], { namespace: Bytes }>;
+    };
     networkMembership: {
       /**
        * A membership was acquired
@@ -876,17 +908,17 @@ declare module '@polkadot/api-base/types/events' {
     registries: {
       /**
        * A registry has been archived.
-       * \[registry identifier,  authority\]
+       * \[registry identifier, authority\]
        **/
       Archive: AugmentedEvent<ApiType, [registryId: Bytes, authority: AccountId32], { registryId: Bytes, authority: AccountId32 }>;
       /**
        * A new registry authorization has been added.
-       * \[registry identifier, authorization,  delegate\]
+       * \[registry identifier, registry authorization, delegate\]
        **/
       Authorization: AugmentedEvent<ApiType, [registryId: Bytes, authorization: Bytes, delegate: AccountId32], { registryId: Bytes, authorization: Bytes, delegate: AccountId32 }>;
       /**
        * A new registry has been created.
-       * \[registry identifier, creator, authorization\]
+       * \[registry identifier, creator, registry authorization\]
        **/
       Create: AugmentedEvent<ApiType, [registryId: Bytes, creator: AccountId32, authorization: Bytes], { registryId: Bytes, creator: AccountId32, authorization: Bytes }>;
       /**
@@ -901,7 +933,7 @@ declare module '@polkadot/api-base/types/events' {
       Reinstate: AugmentedEvent<ApiType, [registryId: Bytes, authority: AccountId32], { registryId: Bytes, authority: AccountId32 }>;
       /**
        * A registry has been restored.
-       * \[registry identifier, authority\]
+       * \[registry identifier,authority\]
        **/
       Restore: AugmentedEvent<ApiType, [registryId: Bytes, authority: AccountId32], { registryId: Bytes, authority: AccountId32 }>;
       /**
@@ -911,7 +943,7 @@ declare module '@polkadot/api-base/types/events' {
       Revoke: AugmentedEvent<ApiType, [registryId: Bytes, authority: AccountId32], { registryId: Bytes, authority: AccountId32 }>;
       /**
        * A existing registry has been updated.
-       * \[registry identifier, updater, authorization\]
+       * \[registry identifier, updater, registry authorization\]
        **/
       Update: AugmentedEvent<ApiType, [registryId: Bytes, updater: AccountId32, authorization: Bytes], { registryId: Bytes, updater: AccountId32, authorization: Bytes }>;
     };

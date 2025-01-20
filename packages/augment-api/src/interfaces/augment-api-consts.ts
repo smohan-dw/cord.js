@@ -385,6 +385,10 @@ declare module '@polkadot/api-base/types/consts' {
        **/
       maxSignatories: u32 & AugmentedConst<ApiType>;
     };
+    nameSpace: {
+      maxNameSpaceBlobSize: u32 & AugmentedConst<ApiType>;
+      maxNameSpaceDelegates: u32 & AugmentedConst<ApiType>;
+    };
     networkMembership: {
       maxMembersPerBlock: u32 & AugmentedConst<ApiType>;
       /**

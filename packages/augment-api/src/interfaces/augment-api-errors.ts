@@ -1061,6 +1061,64 @@ declare module '@polkadot/api-base/types/errors' {
        **/
       WrongTimepoint: AugmentedError<ApiType>;
     };
+    nameSpace: {
+      /**
+       * Archived NameSpace
+       **/
+      ArchivedNameSpace: AugmentedError<ApiType>;
+      /**
+       * Authorization Id not found
+       **/
+      AuthorizationNotFound: AugmentedError<ApiType>;
+      /**
+       * Authority already added
+       **/
+      DelegateAlreadyAdded: AugmentedError<ApiType>;
+      /**
+       * Delegate not found.
+       **/
+      DelegateNotFound: AugmentedError<ApiType>;
+      /**
+       * Empty transaction.
+       **/
+      EmptyTransaction: AugmentedError<ApiType>;
+      /**
+       * Invalid Identifier
+       **/
+      InvalidIdentifier: AugmentedError<ApiType>;
+      /**
+       * Invalid Identifier Length
+       **/
+      InvalidIdentifierLength: AugmentedError<ApiType>;
+      /**
+       * Invalid Identifier Prefix
+       **/
+      InvalidIdentifierPrefix: AugmentedError<ApiType>;
+      /**
+       * NameSpace identifier is not unique
+       **/
+      NameSpaceAlreadyAnchored: AugmentedError<ApiType>;
+      /**
+       * NameSpace delegation limit exceeded
+       **/
+      NameSpaceDelegatesLimitExceeded: AugmentedError<ApiType>;
+      /**
+       * NameSpace not Archived
+       **/
+      NameSpaceNotArchived: AugmentedError<ApiType>;
+      /**
+       * NameSpace identifier not found
+       **/
+      NameSpaceNotFound: AugmentedError<ApiType>;
+      /**
+       * Namespace Registry list limit exceeded.
+       **/
+      NameSpaceRegistryListLimitExceeded: AugmentedError<ApiType>;
+      /**
+       * Only when the author is not the controller or delegate.
+       **/
+      UnauthorizedOperation: AugmentedError<ApiType>;
+    };
     networkMembership: {
       /**
        * Max members limit exceeded
