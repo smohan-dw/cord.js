@@ -2383,6 +2383,228 @@ declare module '@polkadot/api-base/types/submittable' {
        **/
       cancelAsMulti: AugmentedSubmittable<(threshold: u16 | AnyNumber | Uint8Array, otherSignatories: Vec<AccountId32> | (AccountId32 | string | Uint8Array)[], timepoint: PalletMultisigTimepoint | { height?: any; index?: any } | string | Uint8Array, callHash: U8aFixed | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [u16, Vec<AccountId32>, PalletMultisigTimepoint, U8aFixed]>;
     };
+    nameSpace: {
+      /**
+       * Adds an administrative delegate to a namespace.
+       * 
+       * The `ADMIN` permission grants the delegate extensive control over
+       * the namespace, including the ability to manage other delegates and
+       * change namespace configurations. This function is called to
+       * grant a delegate these administrative privileges. It verifies that
+       * the caller has the necessary authorization (admin rights) to add an
+       * admin delegate to the namespace. If the caller is authorized,
+       * the delegate is added with the `ADMIN` permission using the
+       * `space_delegate_addition` internal function.
+       * 
+       * # Parameters
+       * - `origin`: The origin of the call, which must be signed by an existing admin of the
+       * namespace.
+       * - `namespace_id`: The identifier of the namespace to which the admin delegate is being
+       * added.
+       * - `delegate`: The identifier of the delegate being granted admin permissions.
+       * - `authorization`: The authorization ID used to validate the addition.
+       * 
+       * # Returns
+       * Returns `Ok(())` if the admin delegate was successfully added, or an
+       * `Err` with an appropriate error if the operation fails.
+       * 
+       * # Errors
+       * - `UnauthorizedOperation`: If the caller is not an admin of the namespace.
+       * - Propagates errors from `space_delegate_addition` if it fails.
+       **/
+      addAdminDelegate: AugmentedSubmittable<(namespaceId: Bytes | string | Uint8Array, delegate: AccountId32 | string | Uint8Array, authorization: Bytes | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [Bytes, AccountId32, Bytes]>;
+      /**
+       * Adds a delegate with the ability to assert new entries to a namespace.
+       * 
+       * The `ASSERT` permission allows the delegate to sign and add new
+       * entries within the namespace. This function is called to grant a
+       * delegate this specific permission. It checks that the caller has the
+       * necessary authorization (admin rights) to add a delegate to the
+       * namespace. If the caller is authorized, the delegate is added with the
+       * `ASSERT` permission using the `space_delegate_addition`
+       * internal function.
+       * 
+       * # Parameters
+       * - `origin`: The origin of the call, which must be signed by an admin of the namespace.
+       * - `namespace_id`: The identifier of the namespace to which the delegate is being added.
+       * - `delegate`: The identifier of the delegate being added to the namespace.
+       * - `authorization`: The authorization ID used to validate the addition.
+       * 
+       * # Returns
+       * Returns `Ok(())` if the delegate was successfully added with
+       * `ASSERT` permission, or an `Err` with an appropriate error if the
+       * operation fails.
+       * 
+       * # Errors
+       * - `UnauthorizedOperation`: If the caller is not an admin of the namespace.
+       * - Propagates errors from `space_delegate_addition` if it fails.
+       **/
+      addDelegate: AugmentedSubmittable<(namespaceId: Bytes | string | Uint8Array, delegate: AccountId32 | string | Uint8Array, authorization: Bytes | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [Bytes, AccountId32, Bytes]>;
+      /**
+       * Adds an audit delegate to a namespace.
+       * 
+       * The `AUDIT` permission grants the delegate the ability to perform
+       * oversight and compliance checks within the namespace. This function is
+       * used to assign a delegate these audit privileges. It ensures that
+       * the caller has the necessary authorization (admin rights) to add an
+       * audit delegate to the namespace. If the caller is authorized, the
+       * delegate is added with the `AUDIT` permission using the
+       * `space_delegate_addition` internal function.
+       * 
+       * # Parameters
+       * - `origin`: The origin of the call, which must be signed by an existing admin of the
+       * namespace.
+       * - `namespace_id`: The identifier of the namespace to which the audit delegate is being
+       * added.
+       * - `delegate`: The identifier of the delegate being granted audit permissions.
+       * - `authorization`: The authorization ID used to validate the addition.
+       * 
+       * # Returns
+       * Returns `Ok(())` if the audit delegate was successfully added, or an
+       * `Err` with an appropriate error if the operation fails.
+       **/
+      addDelegator: AugmentedSubmittable<(namespaceId: Bytes | string | Uint8Array, delegate: AccountId32 | string | Uint8Array, authorization: Bytes | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [Bytes, AccountId32, Bytes]>;
+      /**
+       * Archives a namespace, rendering it inactive.
+       * 
+       * This function marks a namespace as archived based on the provided namespace
+       * ID. It checks that the namespace exists, is not already archived.
+       * Additionally, it verifies that the caller has the
+       * authority to archive the namespace, as indicated by the provided
+       * authorization ID.
+       * 
+       * # Parameters
+       * - `origin`: The origin of the transaction, which must be signed by the creator or an
+       * admin with the appropriate authority.
+       * - `namespace_id`: The identifier of the namespace to be archived.
+       * - `authorization`: An identifier for the authorization being used to validate the
+       * archival.
+       * 
+       * # Returns
+       * - `DispatchResult`: Returns `Ok(())` if the namespace is successfully archived, or an
+       * error (`DispatchError`) if:
+       * - The namespace does not exist.
+       * - `ArchivedNameSpace`: If the namespace is already archived.
+       * - `UnauthorizedOperation`: If the caller does not have the authority to archive the
+       * namespace.
+       * 
+       * # Errors
+       * - `NameSpaceNotFound`: If the specified namespace ID does not correspond to an existing
+       * namespace.
+       * - `ArchivedNameSpace`: If the namespace is already archived.
+       * - `UnauthorizedOperation`: If the caller is not authorized to archive the namespace.
+       * 
+       * # Events
+       * - `Archive`: Emitted when a namespace is successfully archived. It includes the
+       * namespace ID and the authority who performed the archival.
+       **/
+      archive: AugmentedSubmittable<(namespaceId: Bytes | string | Uint8Array, authorization: Bytes | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [Bytes, Bytes]>;
+      /**
+       * Creates a new namespace with a unique identifier based on the provided
+       * namespace code and the creator's identity.
+       * 
+       * This function generates a unique identifier for the namespace by hashing
+       * the encoded namespace code and creator's identifier. It ensures that the
+       * generated namespace identifier is not already in use. An authorization
+       * ID is also created for the new namespace, which is used to manage
+       * delegations. The creator is automatically added as a delegate with
+       * all permissions.
+       * 
+       * # Parameters
+       * - `origin`: The origin of the transaction, which must be signed by the creator.
+       * - `space_code`: A unique code representing the namespace to be created.
+       * 
+       * # Returns
+       * - `DispatchResult`: Returns `Ok(())` if the namespace is successfully created, or an
+       * error (`DispatchError`) if:
+       * - The generated namespace identifier is already in use.
+       * - The generated authorization ID is of invalid length.
+       * - The namespace delegates limit is exceeded.
+       * 
+       * # Errors
+       * - `InvalidIdentifierLength`: If the generated identifiers for the namespace or
+       * authorization are of invalid length.
+       * - `NameSpaceAlreadyAnchored`: If the namespace identifier is already in use.
+       * - `NameSpaceDelegatesLimitExceeded`: If the namespace exceeds the limit of allowed
+       * delegates.
+       * 
+       * # Events
+       * - `Create`: Emitted when a new namespace is successfully created. It includes the
+       * namespace identifier, the creator's identifier, and the authorization ID.
+       **/
+      create: AugmentedSubmittable<(digest: H256 | string | Uint8Array, blob: Option<Bytes> | null | Uint8Array | Bytes | string) => SubmittableExtrinsic<ApiType>, [H256, Option<Bytes>]>;
+      /**
+       * Removes a delegate from a specified namespace.
+       * 
+       * This function will remove an existing delegate from a namespace, given
+       * the namespace ID and the delegate's authorization ID. It checks that the
+       * namespace exists, is not archived and that the provided
+       * authorization corresponds to a delegate of the namespace. It also
+       * verifies that the caller has the authority to remove a delegate.
+       * 
+       * # Parameters
+       * - `origin`: The origin of the transaction, which must be signed by the creator or an
+       * admin.
+       * - `namespace_id`: The identifier of the namespace from which the delegate is being
+       * removed.
+       * - `remove_authorization`: The authorization ID of the delegate to be removed.
+       * - `authorization`: An identifier for the authorization being used to validate the
+       * removal.
+       * 
+       * # Returns
+       * - `DispatchResult`: This function returns `Ok(())` if the delegate is successfully
+       * removed, or an error (`DispatchError`) if any of the checks fail.
+       * 
+       * # Errors
+       * - `AuthorizationNotFound`: If the provided `remove_authorization` does not exist.
+       * - `UnauthorizedOperation`: If the origin is not authorized to remove a delegate from the
+       * namespace.
+       * - `NameSpaceNotFound`: If the specified namespace ID does not correspond to an existing
+       * namespace.
+       * - `ArchivedNameSpace`: If the namespace is archived and no longer active.
+       * - `DelegateNotFound`: If the delegate specified by `remove_authorization` is not found
+       * in the namespace.
+       * 
+       * # Events
+       * 
+       * - `Deauthorization`: Emitted when a delegate is successfully removed from a namespace.
+       * The event includes the namespace ID and the authorization ID of the removed delegate.
+       **/
+      removeDelegate: AugmentedSubmittable<(namespaceId: Bytes | string | Uint8Array, removeAuthorization: Bytes | string | Uint8Array, authorization: Bytes | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [Bytes, Bytes, Bytes]>;
+      /**
+       * Restores an archived namespace, making it active again.
+       * 
+       * This function unarchives a namespace based on the provided namespace ID. It
+       * checks that the namespace exists, is currently archived.
+       * It also verifies that the caller has the authority to
+       * restore the namespace, as indicated by the provided authorization ID.
+       * 
+       * # Parameters
+       * - `origin`: The origin of the transaction, which must be signed by the creator or an
+       * admin with the appropriate authority.
+       * - `namespace_id`: The identifier of the namespace to be restored.
+       * - `authorization`: An identifier for the authorization being used to validate the
+       * restoration.
+       * 
+       * # Returns
+       * - `DispatchResult`: Returns `Ok(())` if the namespace is successfully restored, or an
+       * error (`DispatchError`) if:
+       * - The namespace does not exist.
+       * - The namespace is not archived.
+       * - The caller does not have the authority to restore the namespace.
+       * 
+       * # Errors
+       * - `NameSpaceNotFound`: If the specified namespace ID does not correspond to an existing
+       * namespace.
+       * - `NameSpaceNotArchived`: If the namespace is not currently archived.
+       * - `UnauthorizedOperation`: If the caller is not authorized to restore the namespace.
+       * 
+       * # Events
+       * - `Restore`: Emitted when a namespace is successfully restored. It includes the
+       * namespace ID and the authority who performed the restoration.
+       **/
+      restore: AugmentedSubmittable<(namespaceId: Bytes | string | Uint8Array, authorization: Bytes | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [Bytes, Bytes]>;
+    };
     networkMembership: {
       /**
        * Add an author. Only root or council origin can perform this
@@ -3159,8 +3381,10 @@ declare module '@polkadot/api-base/types/submittable' {
        * - `registry_id`: The unique identifier of the registry to which the admin delegate is
        * being added.
        * - `delegate`: The account identifier of the delegate being granted admin permissions.
-       * - `authorization`: The authorization ID used to validate the caller's permission to add
-       * an admin delegate to the specified registry.
+       * - `namespace_authorization`: The Namespace authorization ID used to validate the
+       * caller's permission inside a namespace.
+       * - `registry_authorization`: The authorization ID used to validate the caller's
+       * permission to add an admin delegate to the specified registry.
        * 
        * # Returns
        * Returns `Ok(())` if the admin delegate is successfully added, or an `Err`
@@ -3172,7 +3396,7 @@ declare module '@polkadot/api-base/types/submittable' {
        * registry.
        * - Propagates errors from `registry_delegate_addition` if delegate addition fails.
        **/
-      addAdminDelegate: AugmentedSubmittable<(registryId: Bytes | string | Uint8Array, delegate: AccountId32 | string | Uint8Array, authorization: Bytes | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [Bytes, AccountId32, Bytes]>;
+      addAdminDelegate: AugmentedSubmittable<(registryId: Bytes | string | Uint8Array, delegate: AccountId32 | string | Uint8Array, namespaceAuthorization: Bytes | string | Uint8Array, registryAuthorization: Bytes | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [Bytes, AccountId32, Bytes, Bytes]>;
       /**
        * Adds a delegate with permission to assert new entries to a registry.
        * 
@@ -3192,8 +3416,10 @@ declare module '@polkadot/api-base/types/submittable' {
        * added.
        * - `delegate`: The account identifier of the delegate being granted the `ASSERT`
        * permission.
-       * - `authorization`: The authorization ID used to validate the caller's permission to add
-       * a delegate.
+       * - `namespace_authorization`: The Namespace authorization ID used to validate the
+       * caller's permission inside a namespace.
+       * - `registry_authorization`: The authorization ID used to validate the caller's
+       * permission to add a delegate.
        * 
        * # Returns
        * Returns `Ok(())` if the delegate is successfully added with `ASSERT`
@@ -3205,7 +3431,7 @@ declare module '@polkadot/api-base/types/submittable' {
        * for the registry.
        * - Propagates errors from `registry_delegate_addition` if the addition fails.
        **/
-      addDelegate: AugmentedSubmittable<(registryId: Bytes | string | Uint8Array, delegate: AccountId32 | string | Uint8Array, authorization: Bytes | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [Bytes, AccountId32, Bytes]>;
+      addDelegate: AugmentedSubmittable<(registryId: Bytes | string | Uint8Array, delegate: AccountId32 | string | Uint8Array, namespaceAuthorization: Bytes | string | Uint8Array, registryAuthorization: Bytes | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [Bytes, AccountId32, Bytes, Bytes]>;
       /**
        * Adds an audit delegate to a registry.
        * 
@@ -3223,8 +3449,10 @@ declare module '@polkadot/api-base/types/submittable' {
        * - `registry_id`: The unique identifier of the registry to which the audit delegate is
        * being added.
        * - `delegate`: The account identifier of the delegate being granted audit permissions.
-       * - `authorization`: The authorization ID used to validate the caller's permission to add
-       * the audit delegate.
+       * - `namespace_authorization`: The Namespace authorization ID used to validate the
+       * caller's permission inside a namespace.
+       * - `registry_authorization`: The authorization ID used to validate the caller's
+       * permission to add the audit delegate.
        * 
        * # Returns
        * Returns `Ok(())` if the audit delegate is successfully added, or an `Err`
@@ -3236,7 +3464,7 @@ declare module '@polkadot/api-base/types/submittable' {
        * for the registry.
        * - Propagates errors from `registry_delegate_addition` if delegate addition fails.
        **/
-      addDelegator: AugmentedSubmittable<(registryId: Bytes | string | Uint8Array, delegate: AccountId32 | string | Uint8Array, authorization: Bytes | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [Bytes, AccountId32, Bytes]>;
+      addDelegator: AugmentedSubmittable<(registryId: Bytes | string | Uint8Array, delegate: AccountId32 | string | Uint8Array, namespaceAuthorization: Bytes | string | Uint8Array, registryAuthorization: Bytes | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [Bytes, AccountId32, Bytes, Bytes]>;
       /**
        * Archives a registry, marking it as inactive.
        * 
@@ -3249,8 +3477,10 @@ declare module '@polkadot/api-base/types/submittable' {
        * - `origin`: The origin of the transaction, which must be signed by the creator or an
        * admin with the appropriate authority.
        * - `registry_id`: The identifier of the registry to be archived.
-       * - `authorization`: An identifier for the authorization being used to validate the
-       * archival.
+       * - `namespace_authorization`: The Namespace authorization ID used to validate the
+       * caller's permission inside a namespace.
+       * - `registry_authorization`: An identifier for the authorization being used to validate
+       * the archival.
        * 
        * # Returns
        * - `DispatchResult`: Returns `Ok(())` if the registry is successfully archived, or an
@@ -3269,7 +3499,7 @@ declare module '@polkadot/api-base/types/submittable' {
        * - `Archive`: Emitted when a registry is successfully archived. It includes the registry
        * ID and the authority who performed the archival.
        **/
-      archive: AugmentedSubmittable<(registryId: Bytes | string | Uint8Array, authorization: Bytes | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [Bytes, Bytes]>;
+      archive: AugmentedSubmittable<(registryId: Bytes | string | Uint8Array, namespaceAuthorization: Bytes | string | Uint8Array, registryAuthorization: Bytes | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [Bytes, Bytes, Bytes]>;
       /**
        * Creates a new registry with a unique identifier based on the provided
        * registry digest and the creator's identity.
@@ -3284,6 +3514,8 @@ declare module '@polkadot/api-base/types/submittable' {
        * # Parameters
        * - `origin`: The origin of the transaction, signed by the creator.
        * - `digest`: The digest representing the registry data to be created.
+       * - `namespace_authorization`: The Namespace authorization ID used to validate the
+       * caller's permission inside a namespace.
        * - `schema_id`: (Optional) A unique code represnting the Schema.
        * - `blob`: (Optional) Metadata or data associated with the registry.
        * 
@@ -3305,7 +3537,7 @@ declare module '@polkadot/api-base/types/submittable' {
        * - `Create`: Emitted when a new registry is successfully created. It includes the
        * registry identifier, the creator's identifier, and the authorization ID.
        **/
-      create: AugmentedSubmittable<(digest: H256 | string | Uint8Array, schemaId: Option<Bytes> | null | Uint8Array | Bytes | string, blob: Option<Bytes> | null | Uint8Array | Bytes | string) => SubmittableExtrinsic<ApiType>, [H256, Option<Bytes>, Option<Bytes>]>;
+      create: AugmentedSubmittable<(digest: H256 | string | Uint8Array, namespaceAuthorization: Bytes | string | Uint8Array, schemaId: Option<Bytes> | null | Uint8Array | Bytes | string, blob: Option<Bytes> | null | Uint8Array | Bytes | string) => SubmittableExtrinsic<ApiType>, [H256, Bytes, Option<Bytes>, Option<Bytes>]>;
       /**
        * Reinstates a revoked registry, making it active again.
        * 
@@ -3318,8 +3550,10 @@ declare module '@polkadot/api-base/types/submittable' {
        * - `origin`: The origin of the transaction, which must be signed by the creator or an
        * admin with the appropriate authority.
        * - `registry_id`: The identifier of the registry to be reinstated.
-       * - `authorization`: An identifier for the authorization being used to validate the
-       * reinstatement.
+       * - `namespace_authorization`: The Namespace authorization ID used to validate the
+       * caller's permission inside a namespace.
+       * - `registry_authorization`: An identifier for the authorization being used to validate
+       * the reinstatement.
        * 
        * # Returns
        * - `DispatchResult`: Returns `Ok(())` if the registry is successfully reinstated, or an
@@ -3338,7 +3572,7 @@ declare module '@polkadot/api-base/types/submittable' {
        * - `Reinstate`: Emitted when a registry is successfully reinstated. It includes the
        * registry ID and the authority who performed the reinstatement.
        **/
-      reinstate: AugmentedSubmittable<(registryId: Bytes | string | Uint8Array, authorization: Bytes | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [Bytes, Bytes]>;
+      reinstate: AugmentedSubmittable<(registryId: Bytes | string | Uint8Array, namespaceAuthorization: Bytes | string | Uint8Array, registryAuthorization: Bytes | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [Bytes, Bytes, Bytes]>;
       /**
        * Removes a delegate from a specified registry.
        * 
@@ -3354,8 +3588,10 @@ declare module '@polkadot/api-base/types/submittable' {
        * - `registry_id`: The unique identifier of the registry from which the delegate is being
        * removed.
        * - `remove_authorization`: The authorization ID of the delegate to be removed.
-       * - `authorization`: The authorization ID validating the caller’s permission to perform
-       * the removal.
+       * - `namespace_authorization`: The Namespace authorization ID used to validate the
+       * caller's permission inside a namespace.
+       * - `registry_authorization`: The authorization ID validating the caller’s permission to
+       * perform the removal.
        * 
        * # Returns
        * - `DispatchResult`: Returns `Ok(())` if the delegate was successfully removed, or an
@@ -3376,7 +3612,7 @@ declare module '@polkadot/api-base/types/submittable' {
        * - `Deauthorization`: Emitted when a delegate is successfully removed from the registry.
        * The event includes the registry ID and the authorization ID of the removed delegate.
        **/
-      removeDelegate: AugmentedSubmittable<(registryId: Bytes | string | Uint8Array, removeAuthorization: Bytes | string | Uint8Array, authorization: Bytes | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [Bytes, Bytes, Bytes]>;
+      removeDelegate: AugmentedSubmittable<(registryId: Bytes | string | Uint8Array, removeAuthorization: Bytes | string | Uint8Array, namespaceAuthorization: Bytes | string | Uint8Array, registryAuthorization: Bytes | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [Bytes, Bytes, Bytes, Bytes]>;
       /**
        * Restores an archived registry, making it active again.
        * 
@@ -3389,8 +3625,10 @@ declare module '@polkadot/api-base/types/submittable' {
        * - `origin`: The origin of the transaction, which must be signed by the creator or an
        * admin with the appropriate authority.
        * - `registry_id`: The identifier of the registry to be restored.
-       * - `authorization`: An identifier for the authorization being used to validate the
-       * restoration.
+       * - `namespace_authorization`: The Namespace authorization ID used to validate the
+       * caller's permission inside a namespace.
+       * - `registry_authorization`: An identifier for the authorization being used to validate
+       * the restoration.
        * 
        * # Returns
        * - `DispatchResult`: Returns `Ok(())` if the registry is successfully restored, or an
@@ -3409,7 +3647,7 @@ declare module '@polkadot/api-base/types/submittable' {
        * - `Restore`: Emitted when a registry is successfully restored. It includes the registry
        * ID and the authority who performed the restoration.
        **/
-      restore: AugmentedSubmittable<(registryId: Bytes | string | Uint8Array, authorization: Bytes | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [Bytes, Bytes]>;
+      restore: AugmentedSubmittable<(registryId: Bytes | string | Uint8Array, namespaceAuthorization: Bytes | string | Uint8Array, registryAuthorization: Bytes | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [Bytes, Bytes, Bytes]>;
       /**
        * Revokes a registry, marking it as no longer active.
        * 
@@ -3422,8 +3660,10 @@ declare module '@polkadot/api-base/types/submittable' {
        * - `origin`: The origin of the transaction, which must be signed by the creator or an
        * admin with the appropriate authority.
        * - `registry_id`: The identifier of the registry to be revoked.
-       * - `authorization`: An identifier for the authorization being used to validate the
-       * revocation.
+       * - `namespace_authorization`: The Namespace authorization ID used to validate the
+       * caller's permission inside a namespace.
+       * - `registry_authorization`: An identifier for the authorization being used to validate
+       * the revocation.
        * 
        * # Returns
        * - `DispatchResult`: Returns `Ok(())` if the registry is successfully revoked, or an
@@ -3442,7 +3682,7 @@ declare module '@polkadot/api-base/types/submittable' {
        * - `Revoke`: Emitted when a registry is successfully revoked. It includes the registry ID
        * and the authority who performed the revocation.
        **/
-      revoke: AugmentedSubmittable<(registryId: Bytes | string | Uint8Array, authorization: Bytes | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [Bytes, Bytes]>;
+      revoke: AugmentedSubmittable<(registryId: Bytes | string | Uint8Array, namespaceAuthorization: Bytes | string | Uint8Array, registryAuthorization: Bytes | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [Bytes, Bytes, Bytes]>;
       /**
        * Updates the digest and optional blob of a registry.
        * 
@@ -3458,8 +3698,10 @@ declare module '@polkadot/api-base/types/submittable' {
        * - `digest`: The new digest (hash) to be assigned to the registry.
        * - `blob`: An optional new blob (data) to be assigned to the registry. If `None`, the
        * existing blob remains unchanged.
-       * - `authorization`: An identifier for the authorization being used to validate the
-       * update.
+       * - `namespace_authorization`: The Namespace authorization ID used to validate the
+       * caller's permission inside a namespace.
+       * - `registry_authorization`: An identifier for the authorization being used to validate
+       * the update.
        * 
        * # Returns
        * - `DispatchResult`: Returns `Ok(())` if the registry is successfully updated, or an
@@ -3475,8 +3717,10 @@ declare module '@polkadot/api-base/types/submittable' {
        * # Events
        * - `Update`: Emitted when a registry is successfully updated. It includes the registry
        * ID, the updater, and the authorization used.
+       * TODO:
+       * Move optional parameter as last argument.
        **/
-      update: AugmentedSubmittable<(registryId: Bytes | string | Uint8Array, digest: H256 | string | Uint8Array, blob: Option<Bytes> | null | Uint8Array | Bytes | string, authorization: Bytes | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [Bytes, H256, Option<Bytes>, Bytes]>;
+      update: AugmentedSubmittable<(registryId: Bytes | string | Uint8Array, digest: H256 | string | Uint8Array, blob: Option<Bytes> | null | Uint8Array | Bytes | string, namespaceAuthorization: Bytes | string | Uint8Array, registryAuthorization: Bytes | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [Bytes, H256, Option<Bytes>, Bytes, Bytes]>;
     };
     remark: {
       /**
