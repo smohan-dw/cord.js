@@ -1,34 +1,31 @@
 import * as Cord from '@cord.network/sdk'
-// import { UUID, Crypto } from '@cord.network/utils'
-import { createDid } from './utils/generateDid'
 import { createDidName } from './utils/generateDidName'
 import { getDidDocFromName } from './utils/queryDidName'
 import { randomUUID } from 'crypto'
 import { addNetworkMember } from './utils/createAuthorities'
 import { createAccount } from './utils/createAccount'
 
-import {
-  requestJudgement,
-  setIdentity,
-  setRegistrar,
-  provideJudgement,
-} from './utils/createRegistrar'
-
-function getChallenge(): string {
-  return Cord.Utils.UUID.generate()
-}
+import BN from 'bn.js';
 
 async function main() {
   const networkAddress = process.env.NETWORK_ADDRESS
     ? process.env.NETWORK_ADDRESS
     : 'ws://127.0.0.1:9944'
-  //  const networkAddress = 'ws://127.0.0.1:9944'
+
   Cord.ConfigService.set({ submitTxResolveOn: Cord.Chain.IS_IN_BLOCK })
   await Cord.connect(networkAddress)
 
+  const api = Cord.ConfigService.get('api');
+
+  // Retrieve the runtime version & the type of the runtime.
+  const runtimeVersion = api.runtimeVersion;
+  
+  const runtimeType = runtimeVersion.specName.toString();
+
+  console.log("\n❄️ Connected to CORD runtime type:", runtimeType);
+
   // Step 1: Setup Membership
   // Setup transaction author account - CORD Account.
-
   console.log(`\n❄️  New Network Member`)
   const authorityAuthorIdentity = Cord.Utils.Crypto.makeKeypairFromUri(
     process.env.ANCHOR_URI ? process.env.ANCHOR_URI : '//Alice',
@@ -40,21 +37,17 @@ async function main() {
     `🏦  Member (${authorityIdentity.type}): ${authorityIdentity.address}`
   )
   await addNetworkMember(authorityAuthorIdentity, authorityIdentity.address)
-  await setRegistrar(authorityAuthorIdentity, authorityIdentity.address)
   console.log('✅ Network Authority created!')
 
   // Setup network member account.
   const { account: authorIdentity } = await createAccount()
   console.log(`🏦  Member (${authorIdentity.type}): ${authorIdentity.address}`)
   await addNetworkMember(authorityAuthorIdentity, authorIdentity.address)
-  console.log(`🔏  Member permissions updated`)
-  await setIdentity(authorIdentity)
-  console.log(`🔏  Member identity info updated`)
-  await requestJudgement(authorIdentity, authorityIdentity.address)
-  console.log(`🔏  Member identity judgement requested`)
-  await provideJudgement(authorityIdentity, authorIdentity.address)
-  console.log(`🔏  Member identity judgement provided`)
   console.log('✅ Network Member added!')
+
+  // Transfer funds for the identity.
+  let tx = await api.tx.balances.transferAllowDeath(authorIdentity.address, new BN('1000000000000000'));
+  await Cord.Chain.signAndSubmitTx(tx, authorityAuthorIdentity);
 
   // Step 2: Setup Identities
   console.log(`\n❄️  Demo Identities (KeyRing)`)
@@ -62,7 +55,7 @@ async function main() {
   /* Creating the DIDs for the different parties involved in the demo. */
   // Create Verifier DID
   const { mnemonic: verifierMnemonic, document: verifierDid } =
-    await createDid(authorIdentity)
+    await Cord.Did.createDid(authorIdentity)
   const verifierKeys = Cord.Utils.Keys.generateKeypairs(
     verifierMnemonic,
     'sr25519'
@@ -72,14 +65,14 @@ async function main() {
   )
   // Create Holder DID
   const { mnemonic: holderMnemonic, document: holderDid } =
-    await createDid(authorIdentity)
+    await Cord.Did.createDid(authorIdentity)
   const holderKeys = Cord.Utils.Keys.generateKeypairs(holderMnemonic, 'sr25519')
   console.log(
     `👩‍⚕️  Holder (${holderDid.assertionMethod![0].type}): ${holderDid.uri}`
   )
   // Create issuer DID
   const { mnemonic: issuerMnemonic, document: issuerDid } =
-    await createDid(authorIdentity)
+    await Cord.Did.createDid(authorIdentity)
   const issuerKeys = Cord.Utils.Keys.generateKeypairs(issuerMnemonic, 'sr25519')
   console.log(
     `🏛   Issuer (${issuerDid?.assertionMethod![0].type}): ${issuerDid.uri}`
@@ -94,7 +87,7 @@ async function main() {
   })
   // Create Delegate One DID
   const { mnemonic: delegateOneMnemonic, document: delegateOneDid } =
-    await createDid(authorIdentity)
+    await Cord.Did.createDid(authorIdentity)
   const delegateOneKeys = Cord.Utils.Keys.generateKeypairs(
     delegateOneMnemonic,
     'sr25519'
@@ -106,7 +99,7 @@ async function main() {
   )
   // Create Delegate Two DID
   const { mnemonic: delegateTwoMnemonic, document: delegateTwoDid } =
-    await createDid(authorIdentity)
+    await Cord.Did.createDid(authorIdentity)
   const delegateTwoKeys = Cord.Utils.Keys.generateKeypairs(
     delegateTwoMnemonic,
     'sr25519'
@@ -118,7 +111,7 @@ async function main() {
   )
   // Create Delegate 3 DID
   const { mnemonic: delegate3Mnemonic, document: delegate3Did } =
-    await createDid(authorIdentity)
+    await Cord.Did.createDid(authorIdentity)
   const delegate3Keys = Cord.Utils.Keys.generateKeypairs(
     delegate3Mnemonic,
     'sr25519'
@@ -180,42 +173,45 @@ async function main() {
   )
   console.log(`✅  Chain Space Approved`)
 
-  // Step 3.5: Subspace
-  const subSpaceProperties = await Cord.ChainSpace.buildFromProperties(
-    issuerDid.uri
-  )
-  console.dir(subSpaceProperties, {
-    depth: null,
-    colors: true,
-  })
-  const subSpace = await Cord.ChainSpace.dispatchSubspaceCreateToChain(
-    subSpaceProperties,
-    issuerDid.uri,
-    authorIdentity,
-    200,
-    space.uri,
-    async ({ data }) => ({
-      signature: issuerKeys.authentication.sign(data),
-      keyType: issuerKeys.authentication.type,
+  /* Disable subspace for permissionless chain */
+  if (runtimeType != "weave") {
+    // Step 3.5: Subspace
+    const subSpaceProperties = await Cord.ChainSpace.buildFromProperties(
+      issuerDid.uri
+    )
+    console.dir(subSpaceProperties, {
+      depth: null,
+      colors: true,
     })
-  )
-  console.dir(subSpace, {
-    depth: null,
-    colors: true,
-  })
-  console.log(`\n❄️  SubSpace is created`)
+    const subSpace = await Cord.ChainSpace.dispatchSubspaceCreateToChain(
+      subSpaceProperties,
+      issuerDid.uri,
+      authorIdentity,
+      200,
+      space.uri,
+      async ({ data }) => ({
+        signature: issuerKeys.authentication.sign(data),
+        keyType: issuerKeys.authentication.type,
+      })
+    )
+    console.dir(subSpace, {
+      depth: null,
+      colors: true,
+    })
+    console.log(`\n❄️  SubSpace is created`)
 
-  const subSpaceTx = await Cord.ChainSpace.dispatchUpdateTxCapacityToChain(
-    subSpace.uri,
-    issuerDid.uri,
-    authorIdentity,
-    300,
-    async ({ data }) => ({
-      signature: issuerKeys.authentication.sign(data),
-      keyType: issuerKeys.authentication.type,
-    })
-  )
-  console.log(`\n❄️  SubSpace limit is updated`)
+    const subSpaceTx = await Cord.ChainSpace.dispatchUpdateTxCapacityToChain(
+      subSpace.uri,
+      issuerDid.uri,
+      authorIdentity,
+      300,
+      async ({ data }) => ({
+        signature: issuerKeys.authentication.sign(data),
+        keyType: issuerKeys.authentication.type,
+      })
+    )
+    console.log(`\n❄️  SubSpace limit is updated`)
+  }
 
   // Step 4: Add Delelegate Two as Registry Delegate
   console.log(`\n❄️  Space Delegate Authorization `)
@@ -444,7 +440,7 @@ async function main() {
       keyType: delegateTwoKeys.authentication.type,
     })
   )
-  console.log(`✅ Statement revoked!`)
+  console.log(`✅ Statement restored!`)
 
   console.log(`\n❄️  Statement Re-verification `)
   const reReVerificationResult = await Cord.Statement.verifyAgainstProperties(
